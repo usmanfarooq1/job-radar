@@ -1,10 +1,10 @@
 package engine
 
 type ExecutionStrategy interface {
-	JobExtractionInterface(t *Task) error
+	JobExtractionInterface(t *ScraperTask) error
 }
 
-func GenerateExecutionStrategy(task *Task) (ExecutionStrategy, error) {
+func GenerateExecutionStrategy(task *ScraperTask) (ExecutionStrategy, error) {
 	queryBuilder, err := GenerateQueryBuilderStrategy(task.taskType)
 	if err != nil {
 		return nil, err

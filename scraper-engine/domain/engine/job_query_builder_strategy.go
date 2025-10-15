@@ -1,10 +1,10 @@
 package engine
 
 type JobQueryBuilderStrategy interface {
-	Construct(t *Task) (string, error)
+	Construct(t *ScraperTask) (string, error)
 }
 
-func GenerateQueryBuilderStrategy(taskType TaskType) (JobQueryBuilderStrategy, error) {
+func GenerateQueryBuilderStrategy(taskType ScraperTaskType) (JobQueryBuilderStrategy, error) {
 	switch taskType {
 	case LinkedIn:
 		return LinkedInJobQueryBuilderStrategy{}, nil
