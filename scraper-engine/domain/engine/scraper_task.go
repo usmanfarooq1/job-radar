@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 type ScraperTaskType string
 
 const (
-	LinkedIn ScraperTaskType = "linkedIn"
+	LinkedIn ScraperTaskType = "linkedin"
 )
 
 // type ScraperTaskId uuid.UUID
@@ -42,18 +43,22 @@ type ScraperTask struct {
 
 func ParseTaskType(in string) (ScraperTaskType, error) {
 	switch in {
-	case LinkedIn.String():
+	case strings.ToLower(LinkedIn.String()):
 		return LinkedIn, nil
+	default:
+		return LinkedIn, ErrInvalidTaskType
 	}
-	return LinkedIn, ErrInvalidTaskType
+
 }
 
 func (tt ScraperTaskType) String() string {
 	switch tt {
-	case "linkedIn":
+	case "linkedin":
 		return "LinkedIn"
+	default:
+		return ""
 	}
-	return ""
+
 }
 
 func (t *ScraperTask) isValidDelay(delayInSeconds uint32) error {
@@ -101,12 +106,29 @@ func (t *ScraperTask) SetDistance(distanceInString string) error {
 	return nil
 }
 
+func (t *ScraperTask) SetSearchKeywords(search string) error {
+	search = strings.Trim(search, " ")
+	if search == "" {
+		return ErrEmptySearchKeyword
+	}
+	t.searchKeyword = search
+	return nil
+}
+
+func (t *ScraperTask) SetTaskLocation(location string) error {
+	location = strings.Trim(location, " ")
+	if location == "" {
+		return ErrEmptyTaskLocation
+	}
+	t.taskLocation = location
+	return nil
+}
 func (t *ScraperTask) StopExecution() {
 	t.executionChannel <- true
 }
 
 func (t ScraperTask) Execute() {
-
+	go t.exectionHandler.JobExtractor(&t)
 }
 
 func (t *ScraperTask) generateExecutionChannel() {
@@ -120,16 +142,34 @@ func (t *ScraperTask) Equal(task ScraperTask) bool {
 		t.taskType == task.taskType
 }
 
-func MakeTask(delayInSeconds uint32,
+func (t *ScraperTask) SetTaskLocationId(locationId string) error {
+	locationId = strings.Trim(locationId, " ")
+	if locationId == "" {
+		return ErrEmptyTaskLocationId
+	}
+	var re = regexp.MustCompile(`^[0-9]+$`)
+	if !re.MatchString(locationId) {
+		return ErrInvalidTaskLocationId
+	}
+	t.taskLocationId = locationId
+	return nil
+}
+func MakeTask(
+	delayInSeconds uint32,
 	searchKeyword string,
 	locationId string,
 	taskType string,
 	distanceRadius string,
 	taskLocation string) (*ScraperTask, error) {
-	task := ScraperTask{
-		searchKeyword:  searchKeyword,
-		taskLocationId: locationId,
-		taskLocation:   taskLocation,
+	task := ScraperTask{}
+	if err := task.SetSearchKeywords(searchKeyword); err != nil {
+		return nil, err
+	}
+	if err := task.SetTaskLocation(taskLocation); err != nil {
+		return nil, err
+	}
+	if err := task.SetTaskLocationId(locationId); err != nil {
+		return nil, err
 	}
 	if err := task.SetDistance(distanceRadius); err != nil {
 		return nil, err

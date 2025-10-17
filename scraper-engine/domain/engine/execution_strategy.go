@@ -1,7 +1,7 @@
 package engine
 
 type ExecutionStrategy interface {
-	JobExtractionInterface(t *ScraperTask) error
+	JobExtractor(t *ScraperTask)
 }
 
 func GenerateExecutionStrategy(task *ScraperTask) (ExecutionStrategy, error) {
