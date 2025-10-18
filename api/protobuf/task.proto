@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+option go_package = "github.com/usmanfarooq1/job-radar/internal/common/task";
+
+message StopTaskResponse {
+    bool isTaskStopped = 1;
+}
+
+message RemovedTaskResponse {
+    bool isTaskRemoved = 1;
+}
+message CreateTaskRequest {
+    uint32 delayInSeconds = 1;
+	string searchKeyword= 2;
+	string locationId = 3;
+	string taskType = 4;
+	string distanceRadius = 5;
+	string taskLocation = 6;
+}
+
+message TaskIdRequest {
+    string taskId = 1;
+}
+
+message UpdateTaskRequest {
+    TaskIdRequest taskId = 1;
+	uint32 delayInSeconds = 2;
+    string searchKeyword = 3;
+    string locationId = 4;
+    string distanceRadius = 5;
+    string taskLocation = 6;
+}
+
+message Task {
+    string taskId = 1;
+	string taskType = 2;
+    uint32 delayInSeconds = 3;
+    string searchKeyword = 4;
+    string locationId = 5;
+    string distanceRadius = 6;
+    string taskLocation = 7;
+    string createdAt = 8;
+    string updatedAt = 9;
+}
+
+message ListTasksResponse {
+    repeated Task tasks = 1;
+}
+message EmptyRequest {}
+
+service ScraperTaskRoute{
+    rpc AddTask(CreateTaskRequest) returns (Task) {}
+    rpc StopTask(TaskIdRequest) returns (StopTaskResponse) {} 
+    rpc RemoveTask(TaskIdRequest) returns (RemovedTaskResponse) {}
+    rpc UpdateTask(UpdateTaskRequest) returns (Task) {}
+    rpc GetTask(TaskIdRequest) returns (Task) {}
+    rpc ListTasks(EmptyRequest) returns (ListTasksResponse) {}
+}
