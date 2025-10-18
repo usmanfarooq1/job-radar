@@ -1,25 +1,29 @@
 package ports
 
-// import (
-// 	"context"
-// 
+import (
+	"context"
 
-// 	"github.com/usmanfarooq1/job-radar/internal/common/"
-// 	"google.golang.org/grpc"
-// )
+	"github.com/usmanfarooq1/job-radar/internal/common/genproto/task"
+)
 
-// type GrpcServer struct {
-// }
+type GrpcServer struct {
+}
 
-// func (g GrpcServer) AddTask(ctx context.Context, in *CreateTaskRequest, opts ...grpc.CallOption) (*Task, error) {
-// }
-// func (g GrpcServer) StopTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*StopTaskResponse, error) {
-// }
-// func (g GrpcServer) RemoveTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*RemovedTaskResponse, error) {
-// }
-// func (g GrpcServer) UpdateTask(ctx context.Context, in *UpdateTaskRequest, opts ...grpc.CallOption) (*Task, error) {
-// }
-// func (g GrpcServer) GetTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*Task, error) {
-// }
-// func (g GrpcServer) ListTasks(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*ListTasksResponse, error) {
-// }
+func (g GrpcServer) AddTask(ctx context.Context, request *task.CreateTaskRequest) (*task.Task, error) {
+	return nil, nil
+}
+func (g GrpcServer) StopTask(ctx context.Context, request *task.TaskIdRequest) (*task.StopTaskResponse, error) {
+	return nil, nil
+}
+func (g GrpcServer) RemoveTask(ctx context.Context, request *task.TaskIdRequest) (*task.RemovedTaskResponse, error) {
+	return nil, nil
+}
+func (g GrpcServer) UpdateTask(ctx context.Context, request *task.UpdateTaskRequest) (*task.Task, error) {
+	return nil, nil
+}
+func (g GrpcServer) GetTask(ctx context.Context, request *task.TaskIdRequest) (*task.Task, error) {
+	return nil, nil
+}
+func (g GrpcServer) ListTasks(ctx context.Context, request *task.EmptyRequest) (*task.ListTasksResponse, error) {
+	return nil, nil
+}
