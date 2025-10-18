@@ -38,6 +38,7 @@ type ScraperTask struct {
 	taskLocation     string
 	taskType         ScraperTaskType
 	exectionHandler  ExecutionStrategy
+	isRunning        bool
 	executionChannel chan (bool)
 }
 
@@ -76,7 +77,12 @@ func (t *ScraperTask) SetTaskType(taskType string) error {
 	t.taskType = taskTypeEnum
 	return nil
 }
-
+func (t *ScraperTask) SetIsRunning() {
+	t.isRunning = true
+}
+func (t *ScraperTask) UnsetIsRunning() {
+	t.isRunning = false
+}
 func (t *ScraperTask) SetDelay(delayInSeconds uint32) error {
 	if err := t.isValidDelay(delayInSeconds); err != nil {
 		return err
@@ -124,11 +130,15 @@ func (t *ScraperTask) SetTaskLocation(location string) error {
 	return nil
 }
 func (t *ScraperTask) StopExecution() {
+	t.UnsetIsRunning()
 	t.executionChannel <- true
 }
 
 func (t ScraperTask) Execute() {
-	go t.exectionHandler.JobExtractor(&t)
+	t.SetIsRunning()
+	go func() {
+		t.exectionHandler.JobExtractor(&t)
+	}()
 }
 
 func (t *ScraperTask) generateExecutionChannel() {
@@ -161,7 +171,7 @@ func MakeTask(
 	taskType string,
 	distanceRadius string,
 	taskLocation string) (*ScraperTask, error) {
-	task := ScraperTask{}
+	task := ScraperTask{isRunning: false}
 	if err := task.SetSearchKeywords(searchKeyword); err != nil {
 		return nil, err
 	}
@@ -187,6 +197,5 @@ func MakeTask(
 	}
 	task.exectionHandler = handler
 	task.id = uuid.New()
-
 	return &task, nil
 }

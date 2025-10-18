@@ -5,7 +5,7 @@ import (
 )
 
 type Manager struct {
-	scraperTasks []ScraperTask
+	scraperTasks map[uuid.UUID]ScraperTask
 
 	/*
 		The Manager contains the list of Tasks and it will contain the behaviour for
@@ -16,37 +16,28 @@ type Manager struct {
 }
 
 func MakeManager() Manager {
-	scraperList := make([]ScraperTask, 0)
+	scraperList := make(map[uuid.UUID]ScraperTask)
 	return Manager{scraperTasks: scraperList}
 }
 
 func (m *Manager) getScraperTask(taskId uuid.UUID) *ScraperTask {
-	for _, scraperTask := range m.scraperTasks {
-		if taskId == scraperTask.id {
-			return &scraperTask
-		}
+	task, ok := m.scraperTasks[taskId]
+	if ok {
+		return &task
 	}
-
 	return nil
 }
 
-func (m *Manager) AddScraperTask(delayInSeconds uint32,
-	searchKeyword string,
-	locationId string,
-	taskType string,
-	distanceRadius string,
-	taskLocation string) (*ScraperTask, error) {
-	task, err := MakeTask(delayInSeconds,
-		searchKeyword,
-		locationId,
-		taskType,
-		distanceRadius,
-		taskLocation)
-	if err != nil {
-		return nil, err
+func (m *Manager) AddScraperTask(task ScraperTask) (*ScraperTask, error) {
+	t, ok := m.scraperTasks[task.id]
+	if !ok {
+		m.scraperTasks[task.id] = task
 	}
-	m.scraperTasks = append(m.scraperTasks, *task)
-	return task, nil
+	return &t, nil
+}
+
+func (m *Manager) GetManagerTasksCount() int {
+	return len(m.scraperTasks)
 }
 
 func (m *Manager) StopScraperTask(taskId uuid.UUID) error {
@@ -54,7 +45,25 @@ func (m *Manager) StopScraperTask(taskId uuid.UUID) error {
 	if task == nil {
 		return ErrNotFound
 	}
-	task.StopExecution()
+	go task.StopExecution()
+	return nil
+}
+func (m *Manager) RemoveScraperTask(taskId uuid.UUID) error {
+	task := m.getScraperTask(taskId)
+	if task == nil {
+		return ErrNotFound
+	}
+	go task.StopExecution()
+	delete(m.scraperTasks, taskId)
+	return nil
+}
+
+func (m *Manager) ExecuteScraperTask(taskId uuid.UUID) error {
+	task := m.getScraperTask(taskId)
+	if task == nil {
+		return ErrNotFound
+	}
+	task.Execute()
 	return nil
 }
 
@@ -63,7 +72,7 @@ func (m *Manager) UpdateScraperTask(
 	delayInSeconds uint32,
 	searchKeyword string,
 	locationId string,
-	distanceRadius uint8,
+	distanceRadius string,
 	taskLocation string) (*ScraperTask, error) {
 	task := m.getScraperTask(taskId)
 	if task == nil {
@@ -72,10 +81,21 @@ func (m *Manager) UpdateScraperTask(
 	if err := task.SetDelay(delayInSeconds); err != nil {
 		return nil, err
 	}
-	task.searchKeyword = searchKeyword
-	task.taskLocationId = locationId
-	task.distanceRadius = distanceRadius
-	task.taskLocation = taskLocation
+	if err := task.SetSearchKeywords(searchKeyword); err != nil {
+		return nil, err
+	}
+	if err := task.SetTaskLocation(taskLocation); err != nil {
+		return nil, err
+	}
+	if err := task.SetTaskLocationId(locationId); err != nil {
+		return nil, err
+	}
+	if err := task.SetDistance(distanceRadius); err != nil {
+		return nil, err
+	}
+	if err := task.SetDelay(delayInSeconds); err != nil {
+		return nil, err
+	}
 	task.StopExecution()
 	task.generateExecutionChannel()
 	handler, err := GenerateExecutionStrategy(task)
@@ -83,5 +103,6 @@ func (m *Manager) UpdateScraperTask(
 		return nil, err
 	}
 	task.exectionHandler = handler
+	task.Execute()
 	return task, nil
 }

@@ -11,6 +11,7 @@ type LinkedInExecutionStrategy struct {
 
 func (ls LinkedInExecutionStrategy) JobExtractor(task *ScraperTask) {
 	ticker := time.NewTicker(time.Duration(task.delayInSeconds) * time.Second)
+
 	select {
 	case <-task.executionChannel:
 		ticker.Stop()
