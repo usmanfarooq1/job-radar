@@ -12,7 +12,10 @@ type GrpcServer struct {
 func (g GrpcServer) AddTask(ctx context.Context, request *task.CreateTaskRequest) (*task.Task, error) {
 	return nil, nil
 }
-func (g GrpcServer) StopTask(ctx context.Context, request *task.TaskIdRequest) (*task.StopTaskResponse, error) {
+func (g GrpcServer) StopTask(ctx context.Context, request *task.TaskIdRequest) (*task.TaskStatusResponse, error) {
+	return nil, nil
+}
+func (g GrpcServer) RunTask(ctx context.Context, request *task.TaskIdRequest) (*task.TaskStatusResponse, error) {
 	return nil, nil
 }
 func (g GrpcServer) RemoveTask(ctx context.Context, request *task.TaskIdRequest) (*task.RemovedTaskResponse, error) {

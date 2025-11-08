@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ScraperTaskRoute_AddTask_FullMethodName    = "/ScraperTaskRoute/AddTask"
 	ScraperTaskRoute_StopTask_FullMethodName   = "/ScraperTaskRoute/StopTask"
+	ScraperTaskRoute_RunTask_FullMethodName    = "/ScraperTaskRoute/RunTask"
 	ScraperTaskRoute_RemoveTask_FullMethodName = "/ScraperTaskRoute/RemoveTask"
 	ScraperTaskRoute_UpdateTask_FullMethodName = "/ScraperTaskRoute/UpdateTask"
 	ScraperTaskRoute_GetTask_FullMethodName    = "/ScraperTaskRoute/GetTask"
@@ -32,7 +33,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ScraperTaskRouteClient interface {
 	AddTask(ctx context.Context, in *CreateTaskRequest, opts ...grpc.CallOption) (*Task, error)
-	StopTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*StopTaskResponse, error)
+	StopTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*TaskStatusResponse, error)
+	RunTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*TaskStatusResponse, error)
 	RemoveTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*RemovedTaskResponse, error)
 	UpdateTask(ctx context.Context, in *UpdateTaskRequest, opts ...grpc.CallOption) (*Task, error)
 	GetTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*Task, error)
@@ -57,10 +59,20 @@ func (c *scraperTaskRouteClient) AddTask(ctx context.Context, in *CreateTaskRequ
 	return out, nil
 }
 
-func (c *scraperTaskRouteClient) StopTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*StopTaskResponse, error) {
+func (c *scraperTaskRouteClient) StopTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*TaskStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StopTaskResponse)
+	out := new(TaskStatusResponse)
 	err := c.cc.Invoke(ctx, ScraperTaskRoute_StopTask_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scraperTaskRouteClient) RunTask(ctx context.Context, in *TaskIdRequest, opts ...grpc.CallOption) (*TaskStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TaskStatusResponse)
+	err := c.cc.Invoke(ctx, ScraperTaskRoute_RunTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +124,8 @@ func (c *scraperTaskRouteClient) ListTasks(ctx context.Context, in *EmptyRequest
 // for forward compatibility.
 type ScraperTaskRouteServer interface {
 	AddTask(context.Context, *CreateTaskRequest) (*Task, error)
-	StopTask(context.Context, *TaskIdRequest) (*StopTaskResponse, error)
+	StopTask(context.Context, *TaskIdRequest) (*TaskStatusResponse, error)
+	RunTask(context.Context, *TaskIdRequest) (*TaskStatusResponse, error)
 	RemoveTask(context.Context, *TaskIdRequest) (*RemovedTaskResponse, error)
 	UpdateTask(context.Context, *UpdateTaskRequest) (*Task, error)
 	GetTask(context.Context, *TaskIdRequest) (*Task, error)
@@ -129,8 +142,11 @@ type UnimplementedScraperTaskRouteServer struct{}
 func (UnimplementedScraperTaskRouteServer) AddTask(context.Context, *CreateTaskRequest) (*Task, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddTask not implemented")
 }
-func (UnimplementedScraperTaskRouteServer) StopTask(context.Context, *TaskIdRequest) (*StopTaskResponse, error) {
+func (UnimplementedScraperTaskRouteServer) StopTask(context.Context, *TaskIdRequest) (*TaskStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopTask not implemented")
+}
+func (UnimplementedScraperTaskRouteServer) RunTask(context.Context, *TaskIdRequest) (*TaskStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RunTask not implemented")
 }
 func (UnimplementedScraperTaskRouteServer) RemoveTask(context.Context, *TaskIdRequest) (*RemovedTaskResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveTask not implemented")
@@ -196,6 +212,24 @@ func _ScraperTaskRoute_StopTask_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ScraperTaskRouteServer).StopTask(ctx, req.(*TaskIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScraperTaskRoute_RunTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TaskIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScraperTaskRouteServer).RunTask(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScraperTaskRoute_RunTask_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScraperTaskRouteServer).RunTask(ctx, req.(*TaskIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -286,6 +320,10 @@ var ScraperTaskRoute_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StopTask",
 			Handler:    _ScraperTaskRoute_StopTask_Handler,
+		},
+		{
+			MethodName: "RunTask",
+			Handler:    _ScraperTaskRoute_RunTask_Handler,
 		},
 		{
 			MethodName: "RemoveTask",

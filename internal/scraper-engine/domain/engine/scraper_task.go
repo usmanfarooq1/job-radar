@@ -6,23 +6,19 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/usmanfarooq1/job-radar/internal/common/db"
 )
 
 type ScraperTaskType string
+type ScraperTaskStatus string
 
+const (
+	ScrapperTaskRunning ScraperTaskStatus = "running"
+	ScraperTaskPaused   ScraperTaskStatus = "paused"
+)
 const (
 	LinkedIn ScraperTaskType = "linkedin"
 )
-
-// type ScraperTaskId uuid.UUID
-
-// func (s ScraperTaskId) IsValidId(scraperTaskId string) uuid.UUID {
-// 	uuid, err := uuid.Parse(scraperTaskId)
-// 	if err != nil {
-
-// 	}
-// 	return ScraperTaskId(uuid)
-// }
 
 type ScraperTask struct {
 	/*
@@ -36,6 +32,7 @@ type ScraperTask struct {
 	taskLocationId   string
 	distanceRadius   uint8
 	taskLocation     string
+	taskStatus       ScraperTaskStatus
 	taskType         ScraperTaskType
 	exectionHandler  ExecutionStrategy
 	isRunning        bool
@@ -69,6 +66,15 @@ func (t *ScraperTask) isValidDelay(delayInSeconds uint32) error {
 	return nil
 }
 
+func (t *ScraperTask) Id() uuid.UUID                 { return t.id }
+func (t *ScraperTask) TaskStatus() ScraperTaskStatus { return t.taskStatus }
+func (t *ScraperTask) SearchLocation() string        { return t.taskLocation }
+func (t *ScraperTask) LocationId() string            { return t.taskLocationId }
+func (t *ScraperTask) DelayInSeconds() uint32        { return t.delayInSeconds }
+func (t *ScraperTask) TaskType() ScraperTaskType     { return t.taskType }
+func (t *ScraperTask) SearchKeyword() string         { return t.searchKeyword }
+func (t *ScraperTask) DistanceRadius() uint8         { return t.distanceRadius }
+
 func (t *ScraperTask) SetTaskType(taskType string) error {
 	taskTypeEnum, err := ParseTaskType(strings.ToLower(taskType))
 	if err != nil {
@@ -76,6 +82,35 @@ func (t *ScraperTask) SetTaskType(taskType string) error {
 	}
 	t.taskType = taskTypeEnum
 	return nil
+}
+func UnmarshallTaskFromDatabase(t db.Task) (*ScraperTask, error) {
+	task := ScraperTask{}
+	if err := task.SetSearchKeywords(t.SearchKeyword); err != nil {
+		return nil, err
+	}
+	if err := task.SetTaskLocation(t.SearchLocation); err != nil {
+		return nil, err
+	}
+	if err := task.SetTaskLocationId(t.LocationID); err != nil {
+		return nil, err
+	}
+	if err := task.SetDistance(string(t.DistanceRadius)); err != nil {
+		return nil, err
+	}
+	if err := task.SetDelay(t.DelayInSeconds); err != nil {
+		return nil, err
+	}
+	if err := task.SetTaskType(string(t.TaskType)); err != nil {
+		return nil, err
+	}
+	task.generateExecutionChannel()
+	handler, err := GenerateExecutionStrategy(&task)
+	if err != nil {
+		return nil, err
+	}
+	task.exectionHandler = handler
+	task.id = t.TaskID
+	return &task, nil
 }
 func (t *ScraperTask) SetIsRunning() {
 	t.isRunning = true
@@ -109,6 +144,11 @@ func (t *ScraperTask) SetDistance(distanceInString string) error {
 		return err
 	}
 	t.distanceRadius = *distance
+	return nil
+}
+
+func (t *ScraperTask) SetTaskStatus(status ScraperTaskStatus) error {
+	t.taskStatus = status
 	return nil
 }
 
@@ -197,5 +237,6 @@ func MakeTask(
 	}
 	task.exectionHandler = handler
 	task.id = uuid.New()
+	task.taskStatus = ScrapperTaskRunning
 	return &task, nil
 }

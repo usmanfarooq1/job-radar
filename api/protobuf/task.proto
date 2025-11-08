@@ -2,8 +2,8 @@ syntax = "proto3";
 
 option go_package = "github.com/usmanfarooq1/job-radar/internal/common/task";
 
-message StopTaskResponse {
-    bool isTaskStopped = 1;
+message TaskStatusResponse {
+    bool isRunning = 1;
 }
 
 message RemovedTaskResponse {
@@ -50,7 +50,8 @@ message EmptyRequest {}
 
 service ScraperTaskRoute{
     rpc AddTask(CreateTaskRequest) returns (Task) {}
-    rpc StopTask(TaskIdRequest) returns (StopTaskResponse) {} 
+    rpc StopTask(TaskIdRequest) returns (TaskStatusResponse) {} 
+    rpc RunTask(TaskIdRequest) returns (TaskStatusResponse) {} 
     rpc RemoveTask(TaskIdRequest) returns (RemovedTaskResponse) {}
     rpc UpdateTask(UpdateTaskRequest) returns (Task) {}
     rpc GetTask(TaskIdRequest) returns (Task) {}

@@ -1,0 +1,30 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "./task.query.sql"
+    schema: "./schema.sql"
+    gen:
+      go:
+        package: "db"
+        out: "../internal/common/db"
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: "uuid"
+            nullable: false
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - column: "tasks.created_at"
+            go_type: "time.Time"
+          - column: "tasks.updated_at"
+            go_type: "time.Time"
+          - column: "jobs.created_at"
+            go_type: "time.Time"
+          - column: "jobs.applied_at"
+            go_type: "time.Time"
+          - column: "skills.created_at"
+            go_type: "time.Time"
+          - column: "tasks.delay_in_seconds"
+            go_type: "uint32"
+          - column: "tasks.distance_radius"
+            go_type: "uint8"

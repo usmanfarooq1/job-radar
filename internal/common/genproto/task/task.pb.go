@@ -21,27 +21,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type StopTaskResponse struct {
+type TaskStatusResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	IsTaskStopped bool                   `protobuf:"varint,1,opt,name=isTaskStopped,proto3" json:"isTaskStopped,omitempty"`
+	IsRunning     bool                   `protobuf:"varint,1,opt,name=isRunning,proto3" json:"isRunning,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StopTaskResponse) Reset() {
-	*x = StopTaskResponse{}
+func (x *TaskStatusResponse) Reset() {
+	*x = TaskStatusResponse{}
 	mi := &file_task_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StopTaskResponse) String() string {
+func (x *TaskStatusResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StopTaskResponse) ProtoMessage() {}
+func (*TaskStatusResponse) ProtoMessage() {}
 
-func (x *StopTaskResponse) ProtoReflect() protoreflect.Message {
+func (x *TaskStatusResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_task_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -53,14 +53,14 @@ func (x *StopTaskResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StopTaskResponse.ProtoReflect.Descriptor instead.
-func (*StopTaskResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use TaskStatusResponse.ProtoReflect.Descriptor instead.
+func (*TaskStatusResponse) Descriptor() ([]byte, []int) {
 	return file_task_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *StopTaskResponse) GetIsTaskStopped() bool {
+func (x *TaskStatusResponse) GetIsRunning() bool {
 	if x != nil {
-		return x.IsTaskStopped
+		return x.IsRunning
 	}
 	return false
 }
@@ -514,9 +514,9 @@ var File_task_proto protoreflect.FileDescriptor
 const file_task_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"task.proto\"8\n" +
-	"\x10StopTaskResponse\x12$\n" +
-	"\risTaskStopped\x18\x01 \x01(\bR\risTaskStopped\";\n" +
+	"task.proto\"2\n" +
+	"\x12TaskStatusResponse\x12\x1c\n" +
+	"\tisRunning\x18\x01 \x01(\bR\tisRunning\";\n" +
 	"\x13RemovedTaskResponse\x12$\n" +
 	"\risTaskRemoved\x18\x01 \x01(\bR\risTaskRemoved\"\xe9\x01\n" +
 	"\x11CreateTaskRequest\x12&\n" +
@@ -553,10 +553,11 @@ const file_task_proto_rawDesc = "" +
 	"\tupdatedAt\x18\t \x01(\tR\tupdatedAt\"0\n" +
 	"\x11ListTasksResponse\x12\x1b\n" +
 	"\x05tasks\x18\x01 \x03(\v2\x05.TaskR\x05tasks\"\x0e\n" +
-	"\fEmptyRequest2\xa2\x02\n" +
+	"\fEmptyRequest2\xd6\x02\n" +
 	"\x10ScraperTaskRoute\x12&\n" +
-	"\aAddTask\x12\x12.CreateTaskRequest\x1a\x05.Task\"\x00\x12/\n" +
-	"\bStopTask\x12\x0e.TaskIdRequest\x1a\x11.StopTaskResponse\"\x00\x124\n" +
+	"\aAddTask\x12\x12.CreateTaskRequest\x1a\x05.Task\"\x00\x121\n" +
+	"\bStopTask\x12\x0e.TaskIdRequest\x1a\x13.TaskStatusResponse\"\x00\x120\n" +
+	"\aRunTask\x12\x0e.TaskIdRequest\x1a\x13.TaskStatusResponse\"\x00\x124\n" +
 	"\n" +
 	"RemoveTask\x12\x0e.TaskIdRequest\x1a\x14.RemovedTaskResponse\"\x00\x12)\n" +
 	"\n" +
@@ -578,7 +579,7 @@ func file_task_proto_rawDescGZIP() []byte {
 
 var file_task_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_task_proto_goTypes = []any{
-	(*StopTaskResponse)(nil),    // 0: StopTaskResponse
+	(*TaskStatusResponse)(nil),  // 0: TaskStatusResponse
 	(*RemovedTaskResponse)(nil), // 1: RemovedTaskResponse
 	(*CreateTaskRequest)(nil),   // 2: CreateTaskRequest
 	(*TaskIdRequest)(nil),       // 3: TaskIdRequest
@@ -592,18 +593,20 @@ var file_task_proto_depIdxs = []int32{
 	5, // 1: ListTasksResponse.tasks:type_name -> Task
 	2, // 2: ScraperTaskRoute.AddTask:input_type -> CreateTaskRequest
 	3, // 3: ScraperTaskRoute.StopTask:input_type -> TaskIdRequest
-	3, // 4: ScraperTaskRoute.RemoveTask:input_type -> TaskIdRequest
-	4, // 5: ScraperTaskRoute.UpdateTask:input_type -> UpdateTaskRequest
-	3, // 6: ScraperTaskRoute.GetTask:input_type -> TaskIdRequest
-	7, // 7: ScraperTaskRoute.ListTasks:input_type -> EmptyRequest
-	5, // 8: ScraperTaskRoute.AddTask:output_type -> Task
-	0, // 9: ScraperTaskRoute.StopTask:output_type -> StopTaskResponse
-	1, // 10: ScraperTaskRoute.RemoveTask:output_type -> RemovedTaskResponse
-	5, // 11: ScraperTaskRoute.UpdateTask:output_type -> Task
-	5, // 12: ScraperTaskRoute.GetTask:output_type -> Task
-	6, // 13: ScraperTaskRoute.ListTasks:output_type -> ListTasksResponse
-	8, // [8:14] is the sub-list for method output_type
-	2, // [2:8] is the sub-list for method input_type
+	3, // 4: ScraperTaskRoute.RunTask:input_type -> TaskIdRequest
+	3, // 5: ScraperTaskRoute.RemoveTask:input_type -> TaskIdRequest
+	4, // 6: ScraperTaskRoute.UpdateTask:input_type -> UpdateTaskRequest
+	3, // 7: ScraperTaskRoute.GetTask:input_type -> TaskIdRequest
+	7, // 8: ScraperTaskRoute.ListTasks:input_type -> EmptyRequest
+	5, // 9: ScraperTaskRoute.AddTask:output_type -> Task
+	0, // 10: ScraperTaskRoute.StopTask:output_type -> TaskStatusResponse
+	0, // 11: ScraperTaskRoute.RunTask:output_type -> TaskStatusResponse
+	1, // 12: ScraperTaskRoute.RemoveTask:output_type -> RemovedTaskResponse
+	5, // 13: ScraperTaskRoute.UpdateTask:output_type -> Task
+	5, // 14: ScraperTaskRoute.GetTask:output_type -> Task
+	6, // 15: ScraperTaskRoute.ListTasks:output_type -> ListTasksResponse
+	9, // [9:16] is the sub-list for method output_type
+	2, // [2:9] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
