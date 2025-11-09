@@ -3,11 +3,11 @@ package adapters
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/rs/zerolog"
 	"github.com/usmanfarooq1/job-radar/internal/common/db"
 
 	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/domain/engine"
@@ -16,14 +16,16 @@ import (
 type SQLScraperTaskRepository struct {
 	db      *pgx.Conn
 	queries *db.Queries
+	logger  zerolog.Logger
 }
 
-func NewSQLScraperTaskRepository(dbConn *pgx.Conn) *SQLScraperTaskRepository {
+func NewSQLScraperTaskRepository(dbConn *pgx.Conn, logger zerolog.Logger) *SQLScraperTaskRepository {
 	if dbConn == nil {
-		fmt.Println("unable to connect to database")
+		error := errors.New("null database connnection passed")
+		logger.Error().Stack().Err(error).Msg("unable to connect to database")
 	}
 	queries := db.New(dbConn)
-	return &SQLScraperTaskRepository{db: dbConn, queries: queries}
+	return &SQLScraperTaskRepository{db: dbConn, queries: queries, logger: logger}
 }
 func (r SQLScraperTaskRepository) AddScraperTask(ctx context.Context, st *engine.ScraperTask) (*engine.ScraperTask, error) {
 
@@ -39,6 +41,10 @@ func (r SQLScraperTaskRepository) AddScraperTask(ctx context.Context, st *engine
 		UpdatedAt:      time.Now(),
 	})
 	if err != nil {
+		r.logger.Error().Err(err).Stack().Dict("task", zerolog.Dict().
+			Str("location", st.SearchLocation()).
+			Str("keyword", st.SearchKeyword()).Str("locationId", st.LocationId())).
+			Msg("unable to create a scraper task")
 		return nil, errors.New("unable to create a scraper task")
 	}
 	return st, nil
@@ -56,6 +62,12 @@ func (r SQLScraperTaskRepository) UpdateScraperTask(ctx context.Context, st *eng
 		UpdatedAt:      time.Now(),
 	})
 	if err != nil {
+		r.logger.Error().Err(err).Stack().Dict("task", zerolog.Dict().
+			Str("scraper_task_id", st.Id().String()).
+			Str("location", st.SearchLocation()).
+			Str("keyword", st.SearchKeyword()).
+			Str("locationId", st.LocationId())).
+			Msg("unable to update scraper task")
 		return nil, errors.New("unable to update scraper task")
 	}
 	return st, nil
@@ -63,6 +75,9 @@ func (r SQLScraperTaskRepository) UpdateScraperTask(ctx context.Context, st *eng
 func (r SQLScraperTaskRepository) RemoveScraperTask(ctx context.Context, id uuid.UUID) error {
 	err := r.queries.DeleteTask(ctx, id)
 	if err != nil {
+		r.logger.Error().Err(err).Stack().Dict("task", zerolog.Dict().
+			Str("scraper_task_id", id.String())).
+			Msg("unable to delete scraper task")
 		return errors.New("unable to delete scraper task")
 	}
 	return nil
@@ -70,25 +85,36 @@ func (r SQLScraperTaskRepository) RemoveScraperTask(ctx context.Context, id uuid
 func (r SQLScraperTaskRepository) GetScraperTask(ctx context.Context, id uuid.UUID) (*engine.ScraperTask, error) {
 	task, err := r.queries.GetTask(ctx, id)
 	if err != nil {
-		return nil, errors.New("unable to fetch a task")
+		r.logger.Error().Err(err).Stack().Dict("task", zerolog.Dict().
+			Str("scraper_task_id", id.String())).
+			Msg("unable to fetch a task from database")
+		return nil, errors.New("unable to fetch a task from database")
 	}
 
 	scraperTask, err := engine.UnmarshallTaskFromDatabase(task)
 	if err != nil {
-		return nil, errors.New("unable unmarshall task from database")
+		r.logger.Error().Err(err).Stack().Dict("task", zerolog.Dict().
+			Str("scraper_task_id", id.String())).
+			Msg("unable to unmarshall task from database")
+		return nil, errors.New("unable to unmarshall task from database")
 	}
 	return scraperTask, nil
 }
 func (r SQLScraperTaskRepository) ListScraperTasks(ctx context.Context) ([]engine.ScraperTask, error) {
 	tasks, err := r.queries.ListTasks(ctx)
 	if err != nil {
+		r.logger.Error().Err(err).Stack().
+			Msg("unable to fetch the tasks from database")
 		return nil, errors.New("unable to fetch the tasks from database")
 	}
 	var scraperTasks []engine.ScraperTask
 	for _, task := range tasks {
 		scraperTask, err := engine.UnmarshallTaskFromDatabase(task)
 		if err != nil {
-			return nil, errors.New("unable unmarshall task from database")
+			r.logger.Error().Err(err).Stack().Dict("task", zerolog.Dict().
+				Str("scraper_task_id", task.TaskID.String())).
+				Msg("unable to unmarshall task from database")
+			return nil, errors.New("unable to unmarshall task from database")
 		}
 		scraperTasks = append(scraperTasks, *scraperTask)
 	}
