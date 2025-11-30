@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/usmanfarooq1/job-radar/internal/common/db"
+	"github.com/usmanfarooq1/job-radar/internal/common/mq"
 )
 
 type ScraperTaskType string
@@ -37,6 +38,7 @@ type ScraperTask struct {
 	exectionHandler  ExecutionStrategy
 	isRunning        bool
 	executionChannel chan (bool)
+	resultChannel    <-chan (mq.JobLinkMessagePayload)
 }
 
 func ParseTaskType(in string) (ScraperTaskType, error) {
@@ -103,12 +105,12 @@ func UnmarshallTaskFromDatabase(t db.Task) (*ScraperTask, error) {
 	if err := task.SetTaskType(string(t.TaskType)); err != nil {
 		return nil, err
 	}
-	task.generateExecutionChannel()
-	handler, err := GenerateExecutionStrategy(&task)
-	if err != nil {
-		return nil, err
-	}
-	task.exectionHandler = handler
+	// task.generateExecutionChannel()
+	// handler, err := GenerateExecutionStrategy(&task)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// task.exectionHandler = handler
 	task.id = t.TaskID
 	return &task, nil
 }
@@ -174,15 +176,18 @@ func (t *ScraperTask) StopExecution() {
 	t.executionChannel <- true
 }
 
-func (t ScraperTask) Execute() {
+func (t ScraperTask) Execute() <-chan mq.JobLinkMessagePayload {
 	t.SetIsRunning()
-	go func() {
-		t.exectionHandler.JobExtractor(&t)
-	}()
+	return t.exectionHandler.JobExtractor(&t)
+
 }
 
 func (t *ScraperTask) generateExecutionChannel() {
 	t.executionChannel = make(chan bool)
+}
+
+func (t *ScraperTask) generateResultChannel() {
+	t.resultChannel = make(<-chan mq.JobLinkMessagePayload)
 }
 
 func (t *ScraperTask) Equal(task ScraperTask) bool {
@@ -210,7 +215,9 @@ func MakeTask(
 	locationId string,
 	taskType string,
 	distanceRadius string,
-	taskLocation string) (*ScraperTask, error) {
+	taskLocation string,
+
+) (*ScraperTask, error) {
 	task := ScraperTask{isRunning: false}
 	if err := task.SetSearchKeywords(searchKeyword); err != nil {
 		return nil, err
@@ -231,6 +238,7 @@ func MakeTask(
 		return nil, err
 	}
 	task.generateExecutionChannel()
+	task.generateResultChannel()
 	handler, err := GenerateExecutionStrategy(&task)
 	if err != nil {
 		return nil, err
