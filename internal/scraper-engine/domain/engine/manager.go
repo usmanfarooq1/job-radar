@@ -1,11 +1,15 @@
 package engine
 
 import (
+	"log"
+
 	"github.com/google/uuid"
+	"github.com/playwright-community/playwright-go"
 )
 
 type Manager struct {
 	scraperTasks map[uuid.UUID]ScraperTask
+	pBrowser     *playwright.Browser
 
 	/*
 		The Manager contains the list of Tasks and it will contain the behaviour for
@@ -17,7 +21,18 @@ type Manager struct {
 
 func MakeManager() Manager {
 	scraperList := make(map[uuid.UUID]ScraperTask)
-	return Manager{scraperTasks: scraperList}
+	pw, err := playwright.Run()
+
+	if err != nil {
+		log.Fatalf("can't start playwright : %v", err)
+	}
+	// TODO Add the environment variable here
+	browser, err := pw.Chromium.Connect("ws://127.0.0.1:3000/")
+	if err != nil {
+		log.Fatalf("can't start chromium  : %v", err)
+	}
+
+	return Manager{scraperTasks: scraperList, pBrowser: &browser}
 }
 
 func (m *Manager) getScraperTask(taskId uuid.UUID) *ScraperTask {
@@ -29,6 +44,7 @@ func (m *Manager) getScraperTask(taskId uuid.UUID) *ScraperTask {
 }
 
 func (m *Manager) AddScraperTask(task ScraperTask) (*ScraperTask, error) {
+	task.SetPBrowser(m.pBrowser)
 	t, ok := m.scraperTasks[task.id]
 	if !ok {
 		m.scraperTasks[task.id] = task

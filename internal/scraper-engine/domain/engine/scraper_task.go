@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/playwright-community/playwright-go"
 	"github.com/usmanfarooq1/job-radar/internal/common/db"
 	"github.com/usmanfarooq1/job-radar/internal/common/mq"
 )
@@ -37,6 +38,7 @@ type ScraperTask struct {
 	taskType         ScraperTaskType
 	exectionHandler  ExecutionStrategy
 	isRunning        bool
+	pBrowser         *playwright.Browser
 	executionChannel chan (bool)
 	resultChannel    <-chan (mq.JobLinkMessagePayload)
 }
@@ -181,7 +183,9 @@ func (t ScraperTask) Execute() <-chan mq.JobLinkMessagePayload {
 	return t.exectionHandler.JobExtractor(&t)
 
 }
-
+func (t *ScraperTask) SetPBrowser(b *playwright.Browser) {
+	t.pBrowser = b
+}
 func (t *ScraperTask) generateExecutionChannel() {
 	t.executionChannel = make(chan bool)
 }
