@@ -11,3 +11,7 @@ type Engine struct {
 func (e *Engine) StartEngine() {
 	e.manager = MakeManager()
 }
+
+func (e *Engine) Manager() Manager {
+	return e.manager
+}

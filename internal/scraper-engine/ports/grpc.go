@@ -4,9 +4,16 @@ import (
 	"context"
 
 	"github.com/usmanfarooq1/job-radar/internal/common/genproto/task"
+
+	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/app"
 )
 
 type GrpcServer struct {
+	app app.Application
+}
+
+func NewGrpcServer(application app.Application) GrpcServer {
+	return GrpcServer{app: application}
 }
 
 func (g GrpcServer) AddTask(ctx context.Context, request *task.CreateTaskRequest) (*task.Task, error) {

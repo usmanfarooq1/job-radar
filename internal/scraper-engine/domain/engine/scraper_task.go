@@ -38,9 +38,9 @@ type ScraperTask struct {
 	taskType         ScraperTaskType
 	exectionHandler  ExecutionStrategy
 	isRunning        bool
-	pBrowser         *playwright.Browser
+	pBrowser         playwright.Browser
 	executionChannel chan (bool)
-	resultChannel    <-chan (mq.JobLinkMessagePayload)
+	resultChannel    chan (mq.JobLinkMessagePayload)
 }
 
 func ParseTaskType(in string) (ScraperTaskType, error) {
@@ -73,6 +73,7 @@ func (t *ScraperTask) isValidDelay(delayInSeconds uint32) error {
 func (t *ScraperTask) Id() uuid.UUID                 { return t.id }
 func (t *ScraperTask) TaskStatus() ScraperTaskStatus { return t.taskStatus }
 func (t *ScraperTask) SearchLocation() string        { return t.taskLocation }
+func (t *ScraperTask) TaskLocation() string          { return t.taskLocation }
 func (t *ScraperTask) LocationId() string            { return t.taskLocationId }
 func (t *ScraperTask) DelayInSeconds() uint32        { return t.delayInSeconds }
 func (t *ScraperTask) TaskType() ScraperTaskType     { return t.taskType }
@@ -183,7 +184,7 @@ func (t ScraperTask) Execute() <-chan mq.JobLinkMessagePayload {
 	return t.exectionHandler.JobExtractor(&t)
 
 }
-func (t *ScraperTask) SetPBrowser(b *playwright.Browser) {
+func (t *ScraperTask) SetPBrowser(b playwright.Browser) {
 	t.pBrowser = b
 }
 func (t *ScraperTask) generateExecutionChannel() {
@@ -191,7 +192,7 @@ func (t *ScraperTask) generateExecutionChannel() {
 }
 
 func (t *ScraperTask) generateResultChannel() {
-	t.resultChannel = make(<-chan mq.JobLinkMessagePayload)
+	t.resultChannel = make(chan mq.JobLinkMessagePayload)
 }
 
 func (t *ScraperTask) Equal(task ScraperTask) bool {

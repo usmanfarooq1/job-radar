@@ -13,7 +13,7 @@ type LinkedInExecutionStrategy struct {
 	query string
 }
 
-func (ls LinkedInExecutionStrategy) JobExtractor(task *ScraperTask) <-chan mq.JobLinkMessagePayload {
+func (ls LinkedInExecutionStrategy) JobExtractor(task *ScraperTask) chan mq.JobLinkMessagePayload {
 	ticker := time.NewTicker(time.Duration(task.delayInSeconds) * time.Second)
 	select {
 	case <-task.executionChannel:
@@ -21,12 +21,12 @@ func (ls LinkedInExecutionStrategy) JobExtractor(task *ScraperTask) <-chan mq.Jo
 		return nil
 	case t := <-ticker.C:
 		fmt.Printf("Executing the job search on: %s, at %s\n", ls.query, t)
-		ls.scrapeJobs(*task.pBrowser)
+		ls.scrapeJobs(task.pBrowser, *task)
 		return task.resultChannel
 	}
 }
 
-func (ls LinkedInExecutionStrategy) scrapeJobs(browser playwright.Browser) {
+func (ls LinkedInExecutionStrategy) scrapeJobs(browser playwright.Browser, task ScraperTask) {
 
 	page, err := browser.NewPage()
 	if err != nil {
@@ -40,16 +40,13 @@ func (ls LinkedInExecutionStrategy) scrapeJobs(browser playwright.Browser) {
 		log.Fatalf("can't find the job search : %v", err)
 	}
 
-	for i, entry := range entries {
-		text, err := entry.Locator("a").First().GetAttribute("href")
+	for _, entry := range entries {
+		jobLink, err := entry.Locator("a").First().GetAttribute("href")
 		if err != nil {
 			log.Println(err)
 		}
-		fmt.Printf("%d: %s\n", i+1, text)
+		task.resultChannel <- mq.CreateJobLinkMessagePayload(task.TaskLocation(), task.LocationId(), jobLink)
+		// fmt.Printf("%d: %s\n", i+1, text)
 
 	}
-	if err := browser.Close(); err != nil {
-		log.Fatalf("can't stop browser : %v", err)
-	}
-
 }

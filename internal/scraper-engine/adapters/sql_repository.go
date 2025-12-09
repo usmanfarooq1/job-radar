@@ -19,13 +19,13 @@ type SQLScraperTaskRepository struct {
 	logger  zerolog.Logger
 }
 
-func NewSQLScraperTaskRepository(dbConn *pgx.Conn, logger zerolog.Logger) *SQLScraperTaskRepository {
+func NewSQLScraperTaskRepository(dbConn *pgx.Conn, logger zerolog.Logger) SQLScraperTaskRepository {
 	if dbConn == nil {
 		error := errors.New("null database connnection passed")
 		logger.Error().Stack().Err(error).Msg("unable to connect to database")
 	}
 	queries := db.New(dbConn)
-	return &SQLScraperTaskRepository{db: dbConn, queries: queries, logger: logger}
+	return SQLScraperTaskRepository{db: dbConn, queries: queries, logger: logger}
 }
 func (r SQLScraperTaskRepository) AddScraperTask(ctx context.Context, st *engine.ScraperTask) (*engine.ScraperTask, error) {
 

@@ -9,7 +9,7 @@ import (
 
 type Manager struct {
 	scraperTasks map[uuid.UUID]ScraperTask
-	pBrowser     *playwright.Browser
+	pBrowser     playwright.Browser
 
 	/*
 		The Manager contains the list of Tasks and it will contain the behaviour for
@@ -32,7 +32,7 @@ func MakeManager() Manager {
 		log.Fatalf("can't start chromium  : %v", err)
 	}
 
-	return Manager{scraperTasks: scraperList, pBrowser: &browser}
+	return Manager{scraperTasks: scraperList, pBrowser: browser}
 }
 
 func (m *Manager) getScraperTask(taskId uuid.UUID) *ScraperTask {

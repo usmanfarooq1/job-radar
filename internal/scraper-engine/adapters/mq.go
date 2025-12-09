@@ -17,8 +17,8 @@ type MQPublisher struct {
 	queueName string
 }
 
-func NewMQPublisher(conn *amqp.Connection, ch *amqp.Channel, queue string) MQPublisher {
-	return MQPublisher{conn: conn, ch: ch, queueName: queue}
+func NewMQPublisher(conn *amqp.Connection, ch *amqp.Channel, queue string, logger zerolog.Logger) MQPublisher {
+	return MQPublisher{conn: conn, ch: ch, queueName: queue, logger: logger}
 }
 
 func (p *MQPublisher) Publish(ctx context.Context, message mq.JobLinkMessagePayload) error {

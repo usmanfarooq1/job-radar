@@ -3,7 +3,7 @@ package engine
 import "github.com/usmanfarooq1/job-radar/internal/common/mq"
 
 type ExecutionStrategy interface {
-	JobExtractor(t *ScraperTask) <-chan mq.JobLinkMessagePayload
+	JobExtractor(t *ScraperTask) chan mq.JobLinkMessagePayload
 }
 
 func GenerateExecutionStrategy(task *ScraperTask) (ExecutionStrategy, error) {
