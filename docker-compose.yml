@@ -2,6 +2,8 @@ name: "job-radar"
 services:
   db:
     image: postgres:15
+    networks:
+      - backend
     ports:
       - "5001:5432"
     env_file:
@@ -12,6 +14,40 @@ services:
     restart: unless-stopped
   rabbit:
     image: rabbitmq:4.1.5-management-alpine
+    networks:
+      - backend
     ports:
       - "5002:5672"
       - "15672:15672"
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    networks:
+      - backend
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - hostmachine:host-gateway
+    init: true
+    stdin_open: true
+    tty: true
+    working_dir: /home/pwuser
+    user: pwuser
+    command: /bin/sh -c "npx -y playwright@1.52.0 run-server --port 3000 --host
+      0.0.0.0"
+    restart: unless-stopped
+
+  engine:
+    build:
+      context: .
+      dockerfile: ./internal/scraper-engine/Dockerfile
+    networks:
+      - backend
+    ports:
+      - "50051:50051"
+    depends_on:
+      - playwright
+      - db
+      - rabbit
+
+  networks:
+    backend:
