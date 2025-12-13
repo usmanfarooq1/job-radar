@@ -1,3 +1,4 @@
+version: "3.9"
 name: "job-radar"
 services:
   db:
@@ -37,17 +38,21 @@ services:
     restart: unless-stopped
 
   engine:
-    build:
-      context: .
-      dockerfile: ./internal/scraper-engine/Dockerfile
+    build: ./internal/scraper-engine/
     networks:
       - backend
     ports:
       - "50051:50051"
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./internal/scraper-engine
+          target: /app
+
     depends_on:
       - playwright
       - db
       - rabbit
 
-  networks:
-    backend:
+networks:
+  backend:
