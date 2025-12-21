@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/google/uuid"
@@ -21,6 +22,17 @@ type Manager struct {
 
 func MakeManager() Manager {
 	scraperList := make(map[uuid.UUID]ScraperTask)
+	driver, err := playwright.NewDriver(&playwright.RunOptions{
+		SkipInstallBrowsers: true,
+	},
+	)
+	if err != nil {
+		fmt.Println("unable to create playwright driver setting object")
+	}
+	err = driver.Install()
+	if err != nil {
+		fmt.Println("unable to install playwright drivers for communication")
+	}
 	pw, err := playwright.Run()
 
 	if err != nil {
@@ -29,7 +41,7 @@ func MakeManager() Manager {
 	// TODO Add the environment variable here
 	browser, err := pw.Chromium.Connect("ws://127.0.0.1:3000/")
 	if err != nil {
-		log.Fatalf("can't start chromium  : %v", err)
+		log.Fatalf("can't connect to chromium  : %v", err)
 	}
 
 	return Manager{scraperTasks: scraperList, pBrowser: browser}
