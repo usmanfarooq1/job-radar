@@ -32,6 +32,7 @@ func NewApplication(ctx context.Context) app.Application {
 	defer conn.Close(ctx)
 
 	taskRepository := adapters.NewSQLScraperTaskRepository(conn, logger)
+	logger.Info().Msg("A new application instance is established")
 	return app.Application{
 		Commands: app.Commands{
 			AddScraperTask: command.NewAddTaskHandler(engine, taskRepository),

@@ -17,7 +17,7 @@ import (
 func main() {
 	ctx := context.Background()
 	application := service.NewApplication(ctx)
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", 50051))
+	lis, err := net.Listen("tcp", fmt.Sprintf("engine:%d", 50051))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -26,5 +26,6 @@ func main() {
 	grpcServer := grpc.NewServer(opts...)
 	reflection.Register(grpcServer)
 	pb.RegisterScraperTaskRouteServer(grpcServer, ports.NewGrpcServer(application))
+	fmt.Println("Starting engine service on 50051")
 	grpcServer.Serve(lis)
 }

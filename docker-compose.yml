@@ -39,13 +39,15 @@ services:
 
   engine:
     build: ./internal/scraper-engine/
+    env_file:
+      - .env
     networks:
       - backend
     ports:
       - "50051:50051"
     develop:
       watch:
-        - action: sync+restart
+        - action: rebuild
           path: ./internal/scraper-engine
           target: /app
 
@@ -56,3 +58,5 @@ services:
 
 networks:
   backend:
+    name: backend
+    driver: bridge

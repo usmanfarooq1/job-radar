@@ -39,7 +39,7 @@ func MakeManager() Manager {
 		log.Fatalf("can't start playwright : %v", err)
 	}
 	// TODO Add the environment variable here
-	browser, err := pw.Chromium.Connect("ws://127.0.0.1:3000/")
+	browser, err := pw.Chromium.Connect("ws://playwright:3000/")
 	if err != nil {
 		log.Fatalf("can't connect to chromium  : %v", err)
 	}
