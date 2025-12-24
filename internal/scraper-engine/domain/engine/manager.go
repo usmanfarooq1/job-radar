@@ -2,10 +2,10 @@ package engine
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/google/uuid"
 	"github.com/playwright-community/playwright-go"
+	"github.com/rs/zerolog/log"
 )
 
 type Manager struct {
@@ -36,12 +36,12 @@ func MakeManager() Manager {
 	pw, err := playwright.Run()
 
 	if err != nil {
-		log.Fatalf("can't start playwright : %v", err)
+		log.Err(err).Msg("can't start playwright")
 	}
 	// TODO Add the environment variable here
 	browser, err := pw.Chromium.Connect("ws://playwright:3000/")
 	if err != nil {
-		log.Fatalf("can't connect to chromium  : %v", err)
+		log.Err(err).Msg("can't connect to chromium")
 	}
 
 	return Manager{scraperTasks: scraperList, pBrowser: browser}
