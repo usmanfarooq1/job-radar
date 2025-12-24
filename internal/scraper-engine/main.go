@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	pb "github.com/usmanfarooq1/job-radar/internal/common/genproto/task"
 	"google.golang.org/grpc"
@@ -17,7 +18,9 @@ import (
 func main() {
 	ctx := context.Background()
 	application := service.NewApplication(ctx)
-	lis, err := net.Listen("tcp", fmt.Sprintf("engine:%d", 50051))
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s",
+		os.Getenv("SERVICE_HOSTNAME"),
+		os.Getenv("SERVICE_PORT")))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -26,6 +29,6 @@ func main() {
 	grpcServer := grpc.NewServer(opts...)
 	reflection.Register(grpcServer)
 	pb.RegisterScraperTaskRouteServer(grpcServer, ports.NewGrpcServer(application))
-	fmt.Println("Starting engine service on 50051")
+	fmt.Printf("Starting engine service on %s\n", os.Getenv("SERVICE_PORT"))
 	grpcServer.Serve(lis)
 }

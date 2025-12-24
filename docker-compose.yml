@@ -40,7 +40,7 @@ services:
   engine:
     build: ./internal/scraper-engine/
     env_file:
-      - .env
+      - ./internal/scraper-engine/.env
     networks:
       - backend
     ports:

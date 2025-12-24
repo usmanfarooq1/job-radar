@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/playwright-community/playwright-go"
@@ -39,7 +40,7 @@ func MakeManager() Manager {
 		log.Err(err).Msg("can't start playwright")
 	}
 	// TODO Add the environment variable here
-	browser, err := pw.Chromium.Connect("ws://playwright:3000/")
+	browser, err := pw.Chromium.Connect(os.Getenv("PLAYWRIGHT_CONNECTION_STRING"))
 	if err != nil {
 		log.Err(err).Msg("can't connect to chromium")
 	}
