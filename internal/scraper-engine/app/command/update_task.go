@@ -19,7 +19,7 @@ type UpdateTask struct {
 	TaskLocation   string
 }
 
-type UpdateTaskHandler decorator.CommandHandler[AddTask]
+type UpdateTaskHandler decorator.CommandHandler[UpdateTask]
 
 type updateTaskHandler struct {
 	engine   engine.Engine

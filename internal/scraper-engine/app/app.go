@@ -10,9 +10,11 @@ type Application struct {
 	Queries  Queries
 }
 type Commands struct {
-	AddScraperTask  command.AddTaskHandler
-	StopScraperTask command.StopTaskHandler
-	RunScraperTask  command.RunTaskHandler
+	AddScraperTask    command.AddTaskHandler
+	StopScraperTask   command.StopTaskHandler
+	RunScraperTask    command.RunTaskHandler
+	RemoveScraperTask command.RemoveTaskHandler
+	UpdateScraperTask command.UpdateTaskHandler
 }
 
 type Queries struct {

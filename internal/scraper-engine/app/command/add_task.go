@@ -2,7 +2,6 @@ package command
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/usmanfarooq1/job-radar/internal/common/decorator"
@@ -36,20 +35,28 @@ func NewAddTaskHandler(
 	}
 }
 
-func (h addTaskHandler) Handle(ctx context.Context, cmd AddTask) error {
+func (h addTaskHandler) transaction(task *engine.ScraperTask) func() error {
 	manager := h.engine.Manager()
+	return func() error {
+		_, err := manager.AddScraperTask(*task)
+		if err != nil {
+			log.Err(err).Msg("unable to add the scraper task to the manager")
+			return err
+		}
+		return nil
+	}
+}
+
+func (h addTaskHandler) Handle(ctx context.Context, cmd AddTask) error {
 	task, err := engine.MakeTask(cmd.DelayInSeconds, cmd.SearchKeyword, cmd.LocationId, cmd.TaskType, cmd.DistanceRadius, cmd.TaskLocation)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("unable to create scraper task")
 		return err
 	}
-	task, err = manager.AddScraperTask(*task)
+	_, err = h.taskRepo.AddScraperTask(ctx, task, h.transaction(task))
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("unble to persist the scraper task")
 		return err
 	}
-
-	h.taskRepo.AddScraperTask(ctx, task)
-	fmt.Println(task)
 	return nil
 }

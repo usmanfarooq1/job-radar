@@ -27,8 +27,7 @@ func NewSQLScraperTaskRepository(dbConn *pgx.Conn, logger zerolog.Logger) SQLScr
 	queries := db.New(dbConn)
 	return SQLScraperTaskRepository{db: dbConn, queries: queries, logger: logger}
 }
-func (r SQLScraperTaskRepository) AddScraperTask(ctx context.Context, st *engine.ScraperTask) (*engine.ScraperTask, error) {
-
+func (r SQLScraperTaskRepository) AddScraperTask(ctx context.Context, st *engine.ScraperTask, exec func() error) (*engine.ScraperTask, error) {
 	_, err := r.queries.CreateTask(ctx, db.CreateTaskParams{
 		TaskID:         st.Id(),
 		SearchLocation: st.SearchLocation(),
@@ -47,10 +46,15 @@ func (r SQLScraperTaskRepository) AddScraperTask(ctx context.Context, st *engine
 			Msg("unable to create a scraper task")
 		return nil, errors.New("unable to create a scraper task")
 	}
+	if err := exec(); err != nil {
+		return nil, err
+	}
+
 	return st, nil
 }
 
-func (r SQLScraperTaskRepository) UpdateScraperTask(ctx context.Context, st *engine.ScraperTask) (*engine.ScraperTask, error) {
+func (r SQLScraperTaskRepository) UpdateScraperTask(ctx context.Context, st *engine.ScraperTask, exec func() error) (*engine.ScraperTask, error) {
+
 	err := r.queries.UpdateTask(ctx, db.UpdateTaskParams{
 		TaskID:         st.Id(),
 		SearchLocation: st.SearchLocation(),
@@ -72,13 +76,14 @@ func (r SQLScraperTaskRepository) UpdateScraperTask(ctx context.Context, st *eng
 	}
 	return st, nil
 }
-func (r SQLScraperTaskRepository) RemoveScraperTask(ctx context.Context, id uuid.UUID) error {
+func (r SQLScraperTaskRepository) RemoveScraperTask(ctx context.Context, id uuid.UUID, exec func() error) error {
 	err := r.queries.DeleteTask(ctx, id)
 	if err != nil {
 		r.logger.Error().Err(err).Stack().Dict("task", zerolog.Dict().
 			Str("scraper_task_id", id.String())).
 			Msg("unable to delete scraper task")
 		return errors.New("unable to delete scraper task")
+
 	}
 	return nil
 }

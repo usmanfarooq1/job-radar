@@ -20,6 +20,10 @@ services:
     ports:
       - "5002:5672"
       - "15672:15672"
+    volumes:
+      - /home/usman/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - /home/usman/rabbitmq/data:/var/lib/rabbitmq
+
   playwright:
     image: mcr.microsoft.com/playwright:v1.52.0-noble
     networks:

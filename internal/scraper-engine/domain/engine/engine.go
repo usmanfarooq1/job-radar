@@ -8,8 +8,8 @@ type Engine struct {
 	manager Manager
 }
 
-func (e *Engine) StartEngine() {
-	e.manager = MakeManager()
+func (e *Engine) StartEngine(mq ScraperTaskPublishRepository) {
+	e.manager = MakeManager(mq)
 }
 
 func (e *Engine) Manager() Manager {

@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -12,6 +13,7 @@ import (
 type Manager struct {
 	scraperTasks map[uuid.UUID]ScraperTask
 	pBrowser     playwright.Browser
+	mq           ScraperTaskPublishRepository
 
 	/*
 		The Manager contains the list of Tasks and it will contain the behaviour for
@@ -21,7 +23,7 @@ type Manager struct {
 	*/
 }
 
-func MakeManager() Manager {
+func MakeManager(mq ScraperTaskPublishRepository) Manager {
 	scraperList := make(map[uuid.UUID]ScraperTask)
 	driver, err := playwright.NewDriver(&playwright.RunOptions{
 		SkipInstallBrowsers: true,
@@ -39,13 +41,13 @@ func MakeManager() Manager {
 	if err != nil {
 		log.Err(err).Msg("can't start playwright")
 	}
-	// TODO Add the environment variable here
+
 	browser, err := pw.Chromium.Connect(os.Getenv("PLAYWRIGHT_CONNECTION_STRING"))
 	if err != nil {
 		log.Err(err).Msg("can't connect to chromium")
 	}
 
-	return Manager{scraperTasks: scraperList, pBrowser: browser}
+	return Manager{scraperTasks: scraperList, pBrowser: browser, mq: mq}
 }
 
 func (m *Manager) getScraperTask(taskId uuid.UUID) *ScraperTask {
@@ -57,6 +59,7 @@ func (m *Manager) getScraperTask(taskId uuid.UUID) *ScraperTask {
 }
 
 func (m *Manager) AddScraperTask(task ScraperTask) (*ScraperTask, error) {
+	// Sets the playwright browser object to scrap jobs from the provided link
 	task.SetPBrowser(m.pBrowser)
 	t, ok := m.scraperTasks[task.id]
 	if !ok {
@@ -92,7 +95,10 @@ func (m *Manager) ExecuteScraperTask(taskId uuid.UUID) error {
 	if task == nil {
 		return ErrNotFound
 	}
-	task.Execute()
+	select {
+	case message := <-task.Execute():
+		m.mq.Publish(context.Background(), message)
+	}
 	return nil
 }
 
