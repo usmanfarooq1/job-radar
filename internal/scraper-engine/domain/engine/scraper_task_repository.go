@@ -13,3 +13,7 @@ type ScraperTaskRepository interface {
 	GetScraperTask(ctx context.Context, id uuid.UUID) (*ScraperTask, error)
 	ListScraperTasks(ctx context.Context) ([]ScraperTask, error)
 }
+
+type ExecutionStrategy interface {
+	JobExtractor(t *ScraperTask)
+}

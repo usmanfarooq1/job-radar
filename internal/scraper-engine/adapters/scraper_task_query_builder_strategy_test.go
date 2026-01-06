@@ -1,18 +1,19 @@
-package engine
+package adapters
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/domain/engine"
 )
 
 func TestGenerateQueryBuilderStrategy(t *testing.T) {
 	t.Run("Valid LinkedIn query builder", func(t *testing.T) {
-		builder, err := GenerateQueryBuilderStrategy(LinkedIn)
+		builder, err := GenerateQueryBuilderStrategy(engine.LinkedIn)
 		if err != nil {
 			t.Errorf("%s", err.Error())
 		}
-		task, err := MakeTask(3600, "Test search", "54633212", "LINKEDIN", "40", "Lahore")
+		task, err := engine.MakeTask(3600, "Test search", "54633212", "LINKEDIN", "40", "Lahore")
 		if err != nil {
 			t.Errorf("%s", err.Error())
 		}

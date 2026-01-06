@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/playwright-community/playwright-go"
 	"github.com/usmanfarooq1/job-radar/internal/common/db"
 	"github.com/usmanfarooq1/job-radar/internal/common/mq"
 )
@@ -36,9 +35,8 @@ type ScraperTask struct {
 	taskLocation     string
 	taskStatus       ScraperTaskStatus
 	taskType         ScraperTaskType
-	exectionHandler  ExecutionStrategy
+	executionHandler ExecutionStrategy
 	isRunning        bool
-	pBrowser         playwright.Browser
 	executionChannel chan (bool)
 	resultChannel    chan (mq.JobLinkMessagePayload)
 }
@@ -70,16 +68,21 @@ func (t *ScraperTask) isValidDelay(delayInSeconds uint32) error {
 	return nil
 }
 
-func (t *ScraperTask) Id() uuid.UUID                 { return t.id }
-func (t *ScraperTask) TaskStatus() ScraperTaskStatus { return t.taskStatus }
-func (t *ScraperTask) SearchLocation() string        { return t.taskLocation }
-func (t *ScraperTask) TaskLocation() string          { return t.taskLocation }
-func (t *ScraperTask) LocationId() string            { return t.taskLocationId }
-func (t *ScraperTask) DelayInSeconds() uint32        { return t.delayInSeconds }
-func (t *ScraperTask) TaskType() ScraperTaskType     { return t.taskType }
-func (t *ScraperTask) SearchKeyword() string         { return t.searchKeyword }
-func (t *ScraperTask) DistanceRadius() uint8         { return t.distanceRadius }
+func (t *ScraperTask) Id() uuid.UUID                                  { return t.id }
+func (t *ScraperTask) TaskStatus() ScraperTaskStatus                  { return t.taskStatus }
+func (t *ScraperTask) SearchLocation() string                         { return t.taskLocation }
+func (t *ScraperTask) TaskLocation() string                           { return t.taskLocation }
+func (t *ScraperTask) LocationId() string                             { return t.taskLocationId }
+func (t *ScraperTask) DelayInSeconds() uint32                         { return t.delayInSeconds }
+func (t *ScraperTask) TaskType() ScraperTaskType                      { return t.taskType }
+func (t *ScraperTask) SearchKeyword() string                          { return t.searchKeyword }
+func (t *ScraperTask) DistanceRadius() uint8                          { return t.distanceRadius }
+func (t *ScraperTask) ExecutionChannel() chan (bool)                  { return t.executionChannel }
+func (t *ScraperTask) ResultChannel() chan (mq.JobLinkMessagePayload) { return t.resultChannel }
 
+func (t *ScraperTask) SetExecutionStrategy(strategy ExecutionStrategy) {
+	t.executionHandler = strategy
+}
 func (t *ScraperTask) SetTaskType(taskType string) error {
 	taskTypeEnum, err := ParseTaskType(strings.ToLower(taskType))
 	if err != nil {
@@ -179,13 +182,9 @@ func (t *ScraperTask) StopExecution() {
 	t.executionChannel <- true
 }
 
-func (t ScraperTask) Execute() <-chan mq.JobLinkMessagePayload {
+func (t ScraperTask) Execute() {
 	t.SetIsRunning()
-	return t.exectionHandler.JobExtractor(&t)
-
-}
-func (t *ScraperTask) SetPBrowser(b playwright.Browser) {
-	t.pBrowser = b
+	go t.executionHandler.JobExtractor(&t)
 }
 func (t *ScraperTask) generateExecutionChannel() {
 	t.executionChannel = make(chan bool)
@@ -244,11 +243,6 @@ func MakeTask(
 	}
 	task.generateExecutionChannel()
 	task.generateResultChannel()
-	handler, err := GenerateExecutionStrategy(&task)
-	if err != nil {
-		return nil, err
-	}
-	task.exectionHandler = handler
 	task.id = uuid.New()
 	task.taskStatus = ScrapperTaskRunning
 	return &task, nil

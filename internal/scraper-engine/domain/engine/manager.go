@@ -8,13 +8,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/playwright-community/playwright-go"
 	"github.com/rs/zerolog/log"
+	"github.com/usmanfarooq1/job-radar/internal/common/mq"
 )
 
 type Manager struct {
-	scraperTasks map[uuid.UUID]ScraperTask
-	pBrowser     playwright.Browser
-	mq           ScraperTaskPublishRepository
-
+	scraperTasks   map[uuid.UUID]ScraperTask
+	pBrowser       playwright.Browser
+	mq             ScraperTaskPublishRepository
+	pubKillChannel chan (int)
 	/*
 		The Manager contains the list of Tasks and it will contain the behaviour for
 		- adding a task.
@@ -47,9 +48,48 @@ func MakeManager(mq ScraperTaskPublishRepository) Manager {
 		log.Err(err).Msg("can't connect to chromium")
 	}
 
-	return Manager{scraperTasks: scraperList, pBrowser: browser, mq: mq}
+	return Manager{scraperTasks: scraperList, pBrowser: browser, mq: mq, pubKillChannel: make(chan int)}
 }
 
+func (m *Manager) fanInToPublish() <-chan mq.JobLinkMessagePayload {
+	out := make(chan mq.JobLinkMessagePayload)
+	for _, st := range m.scraperTasks {
+		go func(c <-chan mq.JobLinkMessagePayload) {
+			for val := range c {
+				out <- val
+			}
+		}(st.ResultChannel())
+	}
+	return out
+}
+
+func (m *Manager) publishMessages() {
+	merged := m.fanInToPublish()
+	_, ok := <-m.pubKillChannel
+	for ok {
+		if len(merged) > 0 {
+			message := <-merged
+			m.mq.Publish(context.Background(), message)
+		}
+	}
+}
+
+func (m *Manager) reCreatePubKillChannel() {
+	m.pubKillChannel = make(chan int)
+}
+
+func (m *Manager) killPublisher() {
+	_, ok := <-m.pubKillChannel
+	if ok {
+		close(m.pubKillChannel)
+	}
+}
+
+func (m *Manager) startPublishing() {
+	m.killPublisher()
+	m.reCreatePubKillChannel()
+	go m.publishMessages()
+}
 func (m *Manager) getScraperTask(taskId uuid.UUID) *ScraperTask {
 	task, ok := m.scraperTasks[taskId]
 	if ok {
@@ -59,12 +99,11 @@ func (m *Manager) getScraperTask(taskId uuid.UUID) *ScraperTask {
 }
 
 func (m *Manager) AddScraperTask(task ScraperTask) (*ScraperTask, error) {
-	// Sets the playwright browser object to scrap jobs from the provided link
-	task.SetPBrowser(m.pBrowser)
 	t, ok := m.scraperTasks[task.id]
 	if !ok {
 		m.scraperTasks[task.id] = task
 	}
+	m.startPublishing()
 	return &t, nil
 }
 
@@ -78,6 +117,7 @@ func (m *Manager) StopScraperTask(taskId uuid.UUID) error {
 		return ErrNotFound
 	}
 	go task.StopExecution()
+	m.startPublishing()
 	return nil
 }
 func (m *Manager) RemoveScraperTask(taskId uuid.UUID) error {
@@ -95,10 +135,7 @@ func (m *Manager) ExecuteScraperTask(taskId uuid.UUID) error {
 	if task == nil {
 		return ErrNotFound
 	}
-	select {
-	case message := <-task.Execute():
-		m.mq.Publish(context.Background(), message)
-	}
+	task.Execute()
 	return nil
 }
 
@@ -133,11 +170,7 @@ func (m *Manager) UpdateScraperTask(
 	}
 	task.StopExecution()
 	task.generateExecutionChannel()
-	handler, err := GenerateExecutionStrategy(task)
-	if err != nil {
-		return nil, err
-	}
-	task.exectionHandler = handler
 	task.Execute()
+	m.startPublishing()
 	return task, nil
 }

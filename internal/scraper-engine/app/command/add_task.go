@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/usmanfarooq1/job-radar/internal/common/decorator"
 
+	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/adapters"
 	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/domain/engine"
 )
 
@@ -38,11 +39,17 @@ func NewAddTaskHandler(
 func (h addTaskHandler) transaction(task *engine.ScraperTask) func() error {
 	manager := h.engine.Manager()
 	return func() error {
-		_, err := manager.AddScraperTask(*task)
+		strategy, err := adapters.GenerateExecutionStrategy(task)
+		if err != nil {
+			return err
+		}
+		task.SetExecutionStrategy(strategy)
+		_, err = manager.AddScraperTask(*task)
 		if err != nil {
 			log.Err(err).Msg("unable to add the scraper task to the manager")
 			return err
 		}
+
 		return nil
 	}
 }
