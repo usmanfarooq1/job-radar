@@ -59,8 +59,8 @@ github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UV
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
-github.com/usmanfarooq1/job-radar/internal/common v0.0.0-20251213205928-3cb7a25e0183 h1:YvU1S/1OU22BjWVRXsSopPefqF4PdW/BZZ8TpHkygys=
-github.com/usmanfarooq1/job-radar/internal/common v0.0.0-20251213205928-3cb7a25e0183/go.mod h1:49r9ngeuNSrt0RbIdrj8EtdCc7+H15fKx0IqYnghUjQ=
+github.com/usmanfarooq1/job-radar/internal/common v0.0.0-20260106155303-3c5f2e75548d h1:tfWXrTLEKWLfnv7perto840nPQAZLuCk6jpm+nFnRS8=
+github.com/usmanfarooq1/job-radar/internal/common v0.0.0-20260106155303-3c5f2e75548d/go.mod h1:49r9ngeuNSrt0RbIdrj8EtdCc7+H15fKx0IqYnghUjQ=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=
 go.opentelemetry.io/auto/sdk v1.1.0/go.mod h1:3wSPjt5PWp2RhlCcmmOial7AvC4DQqZb7a7wCow3W8A=
