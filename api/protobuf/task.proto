@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option go_package = "github.com/usmanfarooq1/job-radar/internal/common/task";
-
+import "google/protobuf/empty.proto";
 message TaskStatusResponse {
     bool isRunning = 1;
 }
@@ -49,11 +49,11 @@ message ListTasksResponse {
 message EmptyRequest {}
 
 service ScraperTaskRoute{
-    rpc AddTask(CreateTaskRequest) returns (Task) {}
-    rpc StopTask(TaskIdRequest) returns (TaskStatusResponse) {} 
-    rpc RunTask(TaskIdRequest) returns (TaskStatusResponse) {} 
-    rpc RemoveTask(TaskIdRequest) returns (RemovedTaskResponse) {}
-    rpc UpdateTask(UpdateTaskRequest) returns (Task) {}
+    rpc AddTask(CreateTaskRequest) returns (google.protobuf.Empty) {}
+    rpc StopTask(TaskIdRequest) returns (google.protobuf.Empty) {} 
+    rpc RunTask(TaskIdRequest) returns (google.protobuf.Empty) {} 
+    rpc RemoveTask(TaskIdRequest) returns (google.protobuf.Empty) {}
+    rpc UpdateTask(UpdateTaskRequest) returns (google.protobuf.Empty) {}
     rpc GetTask(TaskIdRequest) returns (Task) {}
     rpc ListTasks(EmptyRequest) returns (ListTasksResponse) {}
 }

@@ -6,6 +6,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/rs/zerolog v1.34.0
+	github.com/usmanfarooq1/job-radar/internal/common v0.0.0-20260106155303-3c5f2e75548d
 )
 
 require (
@@ -27,13 +28,12 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/stretchr/testify v1.11.1
-	github.com/usmanfarooq1/job-radar/internal/common v0.0.0-20251213205928-3cb7a25e0183
 	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
 	google.golang.org/grpc v1.76.0
-	google.golang.org/protobuf v1.36.10 // indirect
+	google.golang.org/protobuf v1.36.10
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
