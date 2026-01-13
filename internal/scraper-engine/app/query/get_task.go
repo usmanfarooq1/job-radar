@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 	"github.com/usmanfarooq1/job-radar/internal/common/decorator"
 
 	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/domain/engine"
@@ -18,10 +18,12 @@ type GetTaskHandler decorator.QueryHandler[TaskQuery, Task]
 
 type getTaskHandler struct {
 	taskRepo engine.ScraperTaskRepository
+	logger   zerolog.Logger
 }
 
 func NewGetTaskkHandler(
 	engine engine.Engine,
+	logger zerolog.Logger,
 	taskRepo engine.ScraperTaskRepository,
 ) getTaskHandler {
 	return getTaskHandler{
@@ -32,7 +34,7 @@ func NewGetTaskkHandler(
 func (h getTaskHandler) Handle(ctx context.Context, cmd TaskQuery) (Task, error) {
 	_, err := h.taskRepo.GetScraperTask(ctx, cmd.TaskId)
 	if err != nil {
-		log.Err(err)
+		h.logger.Err(err)
 		return Task{}, err
 	}
 

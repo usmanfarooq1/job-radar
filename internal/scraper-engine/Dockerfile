@@ -1,25 +1,23 @@
-FROM golang:1.24
+FROM golang:1.24 as builder
 
 WORKDIR /app
+
+RUN go install github.com/air-verse/air@v1.60.0
 
 COPY go.mod go.sum ./
 
 RUN go mod tidy && go mod download
 
-COPY ./ ./
+# COPY ./ ./
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /scraper-engine
+# RUN CGO_ENABLED=0 GOOS=linux go build -o /scraper-engine
 
 EXPOSE 50051
-
-CMD [ "/scraper-engine" ]
+CMD ["air"]
 
 
 # FROM golang:1.24 AS builder
-
 # WORKDIR /app
-
-# ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 
 # COPY go.mod go.sum ./
 
@@ -27,7 +25,9 @@ CMD [ "/scraper-engine" ]
 
 # COPY ./ ./
 
-# RUN go build -trimpath -ldflags="-s -w" -o scraper-engine .
+# RUN CGO_ENABLED=0 GOOS=linux go build -o /scraper-engine
+
+# RUN /scraper-engine pinstall
 
 # FROM alpine:latest
 
@@ -36,9 +36,9 @@ CMD [ "/scraper-engine" ]
 # RUN apk add --no-cache ca-certificates tzdata
 
 
-# COPY --from=builder /root/.cache /root/.cache 
-# COPY --from=builder /app/scraper-engine /app/scraper-engine
+# COPY --from=builder /root/ /root/ 
+# COPY --from=builder /scraper-engine /app/scraper-engine
 
 # EXPOSE 50051
 
-# CMD [ "/app/scraper-engine" ]
+# CMD [ "/app/scraper-engine", "server" ]

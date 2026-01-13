@@ -1,0 +1,15 @@
+# ./internal/scraper-engine/.air.toml
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  bin = "./tmp/scraper-engine"
+  cmd = "go build -o ./tmp/scraper-engine ."
+  include_ext = ["go", "mod", "sum"]
+
+[run]
+  working_dir = "./tmp"
+  args = []
+
+[misc]
+  clean_on_exit = true

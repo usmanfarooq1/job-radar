@@ -32,6 +32,7 @@ func (r SQLScraperTaskRepository) AddScraperTask(ctx context.Context, st *engine
 		TaskID:         st.Id(),
 		SearchLocation: st.SearchLocation(),
 		LocationID:     st.LocationId(),
+		TaskType:       db.TaskTypeEnum(st.TaskType()),
 		DelayInSeconds: st.DelayInSeconds(),
 		TaskState:      db.TaskStateEnum(st.TaskStatus()),
 		SearchKeyword:  st.SearchKeyword(),

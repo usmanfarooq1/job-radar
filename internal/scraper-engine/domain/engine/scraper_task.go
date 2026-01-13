@@ -102,7 +102,7 @@ func UnmarshallTaskFromDatabase(t db.Task) (*ScraperTask, error) {
 	if err := task.SetTaskLocationId(t.LocationID); err != nil {
 		return nil, err
 	}
-	if err := task.SetDistance(string(t.DistanceRadius)); err != nil {
+	if err := task.SetDistance(strconv.Itoa(int(t.DistanceRadius))); err != nil {
 		return nil, err
 	}
 	if err := task.SetDelay(t.DelayInSeconds); err != nil {

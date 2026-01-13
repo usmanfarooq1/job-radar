@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 	"github.com/usmanfarooq1/job-radar/internal/common/decorator"
 
 	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/domain/engine"
@@ -23,11 +23,13 @@ type UpdateTaskHandler decorator.CommandHandler[UpdateTask]
 
 type updateTaskHandler struct {
 	engine   engine.Engine
+	logger   zerolog.Logger
 	taskRepo engine.ScraperTaskRepository
 }
 
 func NewUpdateTaskHandler(
 	engine engine.Engine,
+	logger zerolog.Logger,
 	taskRepo engine.ScraperTaskRepository,
 ) updateTaskHandler {
 	return updateTaskHandler{
@@ -40,7 +42,7 @@ func (h updateTaskHandler) Handle(ctx context.Context, cmd UpdateTask) error {
 	manager := h.engine.Manager()
 	task, err := manager.UpdateScraperTask(cmd.TaskId, cmd.DelayInSeconds, cmd.SearchKeyword, cmd.LocationId, cmd.DistanceRadius, cmd.TaskLocation)
 	if err != nil {
-		log.Err(err)
+		h.logger.Err(err)
 		return err
 	}
 	task.Execute()
