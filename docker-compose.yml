@@ -18,7 +18,7 @@ services:
     networks:
       - backend
     ports:
-      - "5002:5672"
+      - "5672:5672"
       - "15672:15672"
     volumes:
       - /home/usman/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
@@ -45,22 +45,35 @@ services:
     build: ./internal/scraper-engine/
     env_file:
       - ./internal/scraper-engine/.env
+    volumes:
+      - ./internal/scraper-engine:/app:rw   
+      - air-tmp:/app/tmp                    
     networks:
       - backend
     ports:
       - "50051:50051"
     develop:
       watch:
-        - action: rebuild
-          path: ./internal/scraper-engine
-          target: /app
+       - path: ./go.mod
+         action: rebuild
+       - path: ./go.sum
+         action: rebuild
+       - path: ./internal/scraper-engine/
+         action: rebuild
+         ignore:
+          - "*.md"
+          - "Dockerfile"
+          - ".git/"
 
     depends_on:
-      - playwright
       - db
       - rabbit
+      - playwright
 
 networks:
   backend:
     name: backend
     driver: bridge
+
+volumes:
+  air-tmp:
