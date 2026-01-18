@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/usmanfarooq1/job-radar/internal/common/mq"
 )
@@ -18,10 +19,10 @@ func TestMakeManager(t *testing.T) {
 
 	t.Run("Creating a valid empty manager", func(t *testing.T) {
 
-		manager := MakeManager(&mockPublisher{})
+		manager := MakeManager(&mockPublisher{}, *zerolog.DefaultContextLogger)
 		assert.Equal(t, 0, manager.GetManagerTasksCount())
 	})
-	manager := MakeManager(&mockPublisher{})
+	manager := MakeManager(&mockPublisher{}, *zerolog.DefaultContextLogger)
 	task, err := MakeTask(3600, "Test search", "54633212", "LINKEDIN", "40", "Lahore")
 	if err != nil {
 		t.Fatalf("Unable to create a task: %s", err.Error())

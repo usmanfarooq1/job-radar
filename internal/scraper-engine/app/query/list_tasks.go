@@ -3,6 +3,8 @@ package query
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/usmanfarooq1/job-radar/internal/common/decorator"
@@ -35,6 +37,19 @@ func (h listTasksHandler) Handle(ctx context.Context, cmd ListTasksQuery) ([]Tas
 		h.logger.Err(err)
 		return []Task{}, err
 	}
-
-	return []Task{}, nil
+	var tasks []Task
+	for _, task := range list {
+		tasks = append(tasks, Task{
+			TaskId:         task.Id().String(),
+			TaskType:       task.TaskType().String(),
+			DelayInSeconds: task.DelayInSeconds(),
+			SearchKeyword:  task.SearchKeyword(),
+			LocationId:     task.LocationId(),
+			DistanceRadius: strconv.Itoa(int(task.DistanceRadius())),
+			TaskLocation:   task.TaskLocation(),
+			CreatedAt:      time.Now().String(),
+			UpdatedAt:      time.Now().String(),
+		})
+	}
+	return tasks, nil
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/playwright-community/playwright-go"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/usmanfarooq1/job-radar/internal/common/mq"
 )
@@ -14,6 +15,7 @@ import (
 type Manager struct {
 	scraperTasks   map[uuid.UUID]ScraperTask
 	pBrowser       playwright.Browser
+	logger         zerolog.Logger
 	mq             ScraperTaskPublishRepository
 	pubKillChannel chan (int)
 	/*
@@ -24,7 +26,7 @@ type Manager struct {
 	*/
 }
 
-func MakeManager(mq ScraperTaskPublishRepository) Manager {
+func MakeManager(mq ScraperTaskPublishRepository, logger zerolog.Logger) Manager {
 	scraperList := make(map[uuid.UUID]ScraperTask)
 	driver, err := playwright.NewDriver(&playwright.RunOptions{
 		SkipInstallBrowsers: true,
@@ -48,7 +50,7 @@ func MakeManager(mq ScraperTaskPublishRepository) Manager {
 		log.Err(err).Msg("can't connect to chromium")
 	}
 
-	return Manager{scraperTasks: scraperList, pBrowser: browser, mq: mq, pubKillChannel: make(chan int)}
+	return Manager{scraperTasks: scraperList, pBrowser: browser, logger: logger, mq: mq, pubKillChannel: make(chan int)}
 }
 
 func (m *Manager) fanInToPublish() <-chan mq.JobLinkMessagePayload {

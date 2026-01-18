@@ -46,13 +46,14 @@ func (h addTaskHandler) transaction(task *engine.ScraperTask) func() error {
 		if err != nil {
 			return err
 		}
+		h.logger.Info().Msg("strategy is generated")
 		task.SetExecutionStrategy(strategy)
 		_, err = manager.AddScraperTask(*task)
 		if err != nil {
 			h.logger.Err(err).Msg("unable to add the scraper task to the manager")
 			return err
 		}
-
+		h.logger.Info().Msg("task added to manager")
 		return nil
 	}
 }
@@ -63,10 +64,12 @@ func (h addTaskHandler) Handle(ctx context.Context, cmd AddTask) error {
 		h.logger.Err(err).Msg("unable to create scraper task")
 		return err
 	}
+	h.logger.Info().Msg("scraper task created successfully")
 	_, err = h.taskRepo.AddScraperTask(ctx, task, h.transaction(task))
 	if err != nil {
 		h.logger.Err(err).Msg("unble to persist the scraper task")
 		return err
 	}
+	h.logger.Info().Msg("scraper task persisted successfully")
 	return nil
 }

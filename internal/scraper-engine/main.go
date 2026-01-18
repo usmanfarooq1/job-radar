@@ -10,18 +10,19 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog"
 	pb "github.com/usmanfarooq1/job-radar/internal/common/genproto/task"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
 	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/adapters"
 	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/domain/engine"
 	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/ports"
 	"github.com/usmanfarooq1/job-radar/internal/scraper-engine/service"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {
 	ctx := context.Background()
 	// Logger
-	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	// // RabbitMQ
 	// mqConn, err := amqp.Dial()
@@ -43,8 +44,8 @@ func main() {
 		logger.Err(err).Msg("Unable to connect to database")
 		os.Exit(1)
 	}
-	engine := engine.Engine{}
-	engine.StartEngine(mq)
+	// Engine
+	engine := engine.MakeEngine(mq, logger)
 
 	defer func() {
 		conn.Close(ctx)
